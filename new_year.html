@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 丙午新春雅集</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 React 和 ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- 引入 Babel 用于解析 JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- 配置 Tailwind 主题色 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'paper': '#FDFBF7', /* 宣纸白 */
+                        'gold-light': '#FFE5B4', /* 浅金 */
+                        'gold-dark': '#B8860B', /* 深金 */
+                        'china-red': '#D62828', /* 中国红 */
+                        'dark-red': '#8B0000',  /* 深红 */
+                        'ink': '#2C1810',       /* 墨色 */
+                    },
+                    fontFamily: {
+                        serif: ['"Noto Serif SC"', '"Songti SC"', 'STSong', 'SimSun', 'serif'],
+                        sans: ['"PingFang SC"', '"Microsoft YaHei"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overscroll-behavior-y: none;
+        }
+
+        /* 更加明亮的背景图 */
+        .bg-pattern {
+            background-color: #D62828;
+            background-image: 
+                radial-gradient(circle at 100% 0%, rgba(255, 215, 0, 0.2) 0%, transparent 30%),
+                radial-gradient(circle at 0% 100%, rgba(255, 215, 0, 0.2) 0%, transparent 30%),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239e0000' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-attachment: fixed;
+        }
+        
+        /* 流光动画 - 更亮 */
+        @keyframes shimmer-gold {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .animate-shimmer-gold {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.4), 
+                transparent
+            );
+            transform: skewX(-20deg);
+            animation: shimmer-gold 2s infinite;
+        }
+
+        .card-shadow-active {
+            box-shadow: 0 10px 30px -5px rgba(255, 215, 0, 0.3), 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        /* 隐藏滚动条 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-pattern text-paper min-h-screen pb-12">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const Icons = {
+            MapPin: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>,
+            ChevronDown: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
+            ChevronUp: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>,
+            Flower: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 7.5a4.5 4.5 0 1 1 4.5 4.5M12 7.5A4.5 4.5 0 1 0 7.5 12M12 7.5V9m-4.5 3a4.5 4.5 0 1 0 4.5 4.5M7.5 12H9m4.5 3a4.5 4.5 0 1 1 4.5-4.5M12 16.5V15m-3 0a3 3 0 0 1 3-3"/></svg>,
+        };
+
+        const START_DATE = new Date('2026-02-15T00:00:00'); 
+        const scheduleData = [
+            { day: '年廿八', dateStr: '2026-02-15', title: '洗邋遢 · 行花街', location: '家中 / 增城广场', activities: ['全家大扫除，备年货（鸡鸭牛羊）', '宝宝参与体验，除旧布新', '逛花市，挑选金桔与年花'] },
+            { day: '年廿九', dateStr: '2026-02-16', title: '贴春联 · 团年饭', location: '家中', activities: ['书写春联，祭拜祖先', '阖家共进团年晚宴', '除夕守岁，辞旧迎新'] },
+            { day: '大年初一', dateStr: '2026-02-17', title: '拜大年 · 本地游', location: '增城广场 / 荔枝文化公园', activities: ['更岁交子，煮饺子拜年', '观赏醒狮表演，纳福迎祥', '漫步公园，感受节日喜气'] },
+            { day: '大年初二', dateStr: '2026-02-18', title: '开年日 · 探亲友', location: '亲友家中', activities: ['回娘家或走访亲戚', '家庭聚餐，互赠祝福', '拍摄全家福，定格团圆'] },
+            { day: '大年初三', dateStr: '2026-02-19', title: '亲子游 · 观沧海', location: '惠州海龟湾', activities: ['自驾前往海龟湾', '宝宝初次踏浪、玩沙、观龟', '傍晚伴着晚霞返程'] },
+            { day: '大年初四', dateStr: '2026-02-20', title: '吸氧日 · 观飞瀑', location: '白水寨风景区', activities: ['山脚绿道散步吸氧', '远眺白水仙瀑，涤荡身心', '享受自然宁静'] },
+            { day: '大年初五', dateStr: '2026-02-21', title: '文创游 · 赏江景', location: '1978电影小镇 / 增江画廊', activities: ['小镇复古街区拍照打卡', '增江画廊漫步，共赏日落', '感受文艺与烟火气'] },
+            { day: '大年初六', dateStr: '2026-02-22', title: '采摘乐 · 农家趣', location: '周边生态农场', activities: ['亲子采摘当季草莓/青枣', '品尝地道窑鸡、迟菜心', '体验田园慢生活'] },
+            { day: '大年初七', dateStr: '2026-02-23', title: '人日节 · 且休整', location: '温馨家中', activities: ['食长寿面，寓意安康', '整理假期影像回忆', '收拾心情，准备启程'] },
+            { day: '大年初八', dateStr: '2026-02-24', title: '开工日 · 启新程', location: '工作岗位', activities: ['元气满满，开启新岁工作', '领取开工利是', '制定新年宏图'] }
+        ];
+
+        function SpringFestivalTimeline() {
+            const [expandedDay, setExpandedDay] = useState(null);
+            const [currentTime, setCurrentTime] = useState(new Date());
+            const [progress, setProgress] = useState(0);
+            const [statusText, setStatusText] = useState('');
+
+            useEffect(() => {
+                const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            useEffect(() => {
+                const calculateProgress = () => {
+                    const now = new Date();
+                    const todayStr = now.toISOString().split('T')[0];
+                    const totalDays = scheduleData.length;
+                    let passedDays = 0;
+                    let isHoliday = false;
+
+                    scheduleData.forEach((item, index) => {
+                        if (now >= new Date(item.dateStr + 'T00:00:00')) {
+                            passedDays = index + 1;
+                        }
+                        if (todayStr === item.dateStr) {
+                            isHoliday = true;
+                            setExpandedDay(index);
+                        }
+                    });
+
+                    const percentage = Math.min(100, Math.max(0, (passedDays / totalDays) * 100));
+                    setProgress(percentage);
+
+                    if (passedDays === 0) {
+                        const daysLeft = Math.ceil((START_DATE - now) / (1000 * 60 * 60 * 24));
+                        setStatusText(daysLeft > 0 ? `距 佳 节 亦 有 ${daysLeft} 天` : '佳 节 将 至');
+                    } else if (passedDays >= totalDays && !isHoliday) {
+                        setStatusText('假 期 圆 满 结 束');
+                    } else {
+                        setStatusText(`佳 节 进 程 ${Math.round(percentage)}%`);
+                    }
+                };
+                calculateProgress();
+            }, [currentTime]);
+
+            const toggleDay = (index) => setExpandedDay(expandedDay === index ? null : index);
+            const isPast = (dateStr) => new Date() > new Date(dateStr + 'T23:59:59');
+            const isToday = (dateStr) => new Date().toISOString().split('T')[0] === dateStr;
+
+            return (
+                <div className="relative w-full max-w-md sm:max-w-xl mx-auto pb-8">
+                    
+                    {/* 头部区域：明亮的红色玻璃态 */}
+                    <div className="sticky top-0 z-50 bg-china-red/80 backdrop-blur-md border-b border-white/10 px-5 pt-safe-top pb-4 shadow-xl transition-all">
+                            <div className="pt-6 sm:pt-8 flex justify-between items-end mb-4 text-paper">
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs text-gold-light/90 border border-gold-light/40 px-1.5 py-0.5 rounded font-serif bg-black/10">丙午年</span>
+                                    <span className="text-[10px] text-paper/80 tracking-[0.2em] font-bold uppercase">2026</span>
+                                </div>
+                                <h1 className="text-3xl font-serif font-bold text-white tracking-widest drop-shadow-md">
+                                    新春雅集
+                                </h1>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-2xl font-mono text-gold-light font-medium tracking-wider tabular-nums drop-shadow-sm">
+                                    {currentTime.toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute:'2-digit' })}
+                                </div>
+                                <div className="text-paper/70 text-xs mt-1 font-medium tracking-wide">
+                                    {currentTime.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit', weekday: 'short' })}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 进度条：金色流光 */}
+                        <div className="relative h-1.5 bg-black/20 w-full rounded-full overflow-hidden">
+                            <div 
+                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#FFD700] via-[#FFFACD] to-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.8)] transition-all duration-1000 ease-out"
+                                style={{ width: `${progress}%` }}
+                            ></div>
+                        </div>
+                        
+                        <div className="flex justify-between items-center mt-2">
+                            <span className="text-[10px] tracking-wider text-gold-light font-medium">
+                                {statusText}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* 行程列表 */}
+                    <div className="px-4 sm:px-6 pt-6 space-y-3 pb-safe-bottom">
+                        {scheduleData.map((item, index) => {
+                            const active = isToday(item.dateStr);
+                            const past = isPast(item.dateStr);
+                            
+                            return (
+                                <div key={index} className="relative pl-6 pb-6 group last:pb-0">
+                                    
+                                    {/* 时间轴线 */}
+                                    {index !== scheduleData.length - 1 && (
+                                        <div className={`absolute left-[9px] top-5 bottom-[-24px] w-[2px] transition-colors duration-500 ${past ? 'bg-gold-light/30' : 'bg-white/10'}`}></div>
+                                    )}
+
+                                    {/* 节点装饰 */}
+                                    <div className={`absolute left-[2px] top-3 w-4 h-4 rounded-full flex items-center justify-center transition-all duration-500 z-20
+                                        ${active ? 'scale-110' : 'scale-100'}`}
+                                    >
+                                        <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ring-2 ring-offset-2 ring-offset-china-red
+                                            ${active 
+                                                ? 'bg-gold-light ring-gold-light shadow-[0_0_10px_rgba(255,215,0,0.8)]' 
+                                                : past ? 'bg-gold-dark/60 ring-transparent' : 'bg-white/20 ring-transparent'}`}>
+                                        </div>
+                                    </div>
+
+                                    {/* 卡片主体 */}
+                                    <div 
+                                        onClick={() => toggleDay(index)}
+                                        className={`relative rounded-xl border transition-all duration-500 cursor-pointer overflow-hidden touch-manipulation
+                                            ${active 
+                                            ? 'bg-gradient-to-br from-paper to-[#F3E5AB] border-gold-light text-ink card-shadow-active translate-x-1' 
+                                            : past
+                                                ? 'bg-black/10 border-white/5 opacity-70 hover:opacity-100 text-paper'
+                                                : 'bg-white/10 border-white/10 hover:bg-white/15 text-paper'
+                                            }
+                                        `}
+                                    >
+                                        {/* 激活状态的流光 */}
+                                        {active && <div className="animate-shimmer-gold pointer-events-none z-0 opacity-30"></div>}
+
+                                        <div className="relative z-10 p-4 sm:p-5">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <span className={`text-xs tracking-wider font-mono font-bold ${active ? 'text-dark-red' : 'text-gold-light/80'}`}>
+                                                            {item.day}
+                                                        </span>
+                                                        {active && (
+                                                            <span className="text-[10px] font-bold px-1.5 py-[1px] bg-dark-red text-white rounded-sm shadow-sm">
+                                                                今日
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <h3 className={`text-lg font-serif font-bold tracking-wide mb-1 ${active ? 'text-ink' : 'text-white'}`}>
+                                                        {item.title}
+                                                    </h3>
+                                                    <div className={`flex items-center text-xs font-light ${active ? 'text-ink/60' : 'text-paper/60'}`}>
+                                                        <Icons.MapPin className="mr-1 w-3.5 h-3.5" />
+                                                        {item.location}
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className={`transition-transform duration-500 mt-1 p-1 ${expandedDay === index ? 'rotate-180' : ''} ${active ? 'text-dark-red' : 'text-white/40'}`}>
+                                                    {expandedDay === index ? 
+                                                        <Icons.ChevronUp className="w-5 h-5" /> : 
+                                                        <Icons.ChevronDown className="w-5 h-5" />
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            {/* 展开内容 */}
+                                            <div className={`grid transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${expandedDay === index ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0'}`}>
+                                                <div className="overflow-hidden">
+                                                    <div className={`h-px w-full mb-3 ${active ? 'bg-ink/10' : 'bg-white/10'}`}></div>
+                                                    <ul className="space-y-2.5">
+                                                        {item.activities.map((act, i) => (
+                                                            <li key={i} className={`flex items-start text-sm font-light leading-relaxed ${active ? 'text-ink/80' : 'text-paper/90'}`}>
+                                                                <Icons.Flower className={`w-3.5 h-3.5 mt-[3px] mr-2.5 flex-shrink-0 ${active ? 'text-dark-red' : 'text-gold-light/50'}`} />
+                                                                <span>{act}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    
+                    <div className="text-center mt-10 pb-12 text-white/30 text-[10px] font-serif tracking-[0.5em] uppercase">
+                        · 岁在丙午 ·
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<SpringFestivalTimeline />);
+    </script>
+</body>
+</html>
